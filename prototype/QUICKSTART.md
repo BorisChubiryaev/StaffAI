@@ -5,7 +5,7 @@ Get the React prototype running in 5 minutes.
 ## 1. Install Dependencies
 
 ```bash
-cd app-prototype
+cd prototype
 npm install
 ```
 
@@ -99,7 +99,7 @@ The home page shows 4 interactive prototypes:
 
 ## 5. Modify Mock Data (Optional)
 
-Edit `lib/mock-data.ts` to change:
+Edit `lib/demo-store.tsx` to change:
 - Request details
 - Contractor options
 - Clarification questions
@@ -132,7 +132,7 @@ Takes ~1 minute, live instantly.
 ## 📚 File Structure at a Glance
 
 ```
-app-prototype/
+prototype/
 ├── app/
 │   ├── page.tsx               ← Home (4 prototype links)
 │   ├── customer/
@@ -143,7 +143,7 @@ app-prototype/
 │   └── admin/page.tsx          ← Admin panel
 ├── lib/
 │   ├── types.ts               ← TypeScript types
-│   └── mock-data.ts           ← Mock data
+│   └── demo-store.tsx         ← Mock data + сценарий демо
 └── README.md                  ← Full documentation
 ```
 
