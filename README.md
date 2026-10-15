@@ -13,7 +13,7 @@
 
 | Вы… | Читайте |
 |---|---|
-| Новый участник команды | [StaffAI за 10 минут](docs/onboarding.md) → [видение](docs/product/vision.md) → [процесс](docs/domain/process.md) |
+| Новый участник команды | [Визуальный онбординг](docs/onboarding.html) (открыть в браузере) · [StaffAI за 10 минут](docs/onboarding.md) → [видение](docs/product/vision.md) → [процесс](docs/domain/process.md) |
 | Аналитик / штаб | [Границы MVP](docs/product/scope-mvp.md) · [статусы](docs/domain/request-lifecycle.md) · [открытые вопросы](docs/open-questions.md) |
 | Разработчик | [Процесс SDD](docs/sdd-process.md) · [конституция](.specify/memory/constitution.md) · [спецификации](specs/README.md) · [архитектура](docs/architecture/overview.md) |
 | ИИ-агент | [AGENTS.md](AGENTS.md) |
@@ -25,6 +25,7 @@
 ├── AGENTS.md / CLAUDE.md      # контекст и правила для ИИ-агентов
 ├── docs/
 │   ├── onboarding.md          # проект за 10 минут
+│   ├── onboarding.html        # то же визуально — открыть в браузере
 │   ├── product/               # видение, MVP, дорожная карта, глоссарий
 │   ├── domain/                # процесс, статусы, роли, данные, события
 │   ├── ai/                    # правила AI-агента продукта

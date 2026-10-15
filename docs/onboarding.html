@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Визуальный онбординг StaffAI. Опубликованная версия: https://claude.ai/artifact/K1WmWV6Dn5YNzG5Vcio9pB
+     Собрана по docs/ на 2026-10-15. При изменении ключевых документов (фаза, MVP, статусы, открытые вопросы) обновите страницу. -->
+<title>StaffAI для новичков</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;600&display=swap">
+<style>
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+/* Layout: a requisition dossier — sticky contents rail on the left, one reading column; hero shows a phrase becoming a request card. */
+:root {
+  --paper: #F4F6F8;
+  --surface: #FFFFFF;
+  --ink: #141A22;
+  --muted: #586273;
+  --line: #DADFE6;
+  --accent: #0A7563;
+  --accent-soft: #E1F2EE;
+  --human: #A86A12;
+  --human-soft: #FBF0DD;
+  --llm: #6A43C2;
+  --llm-soft: #EEE8FB;
+  --algo: #1F5FBF;
+  --algo-soft: #E3EDFB;
+  --out: #8A93A1;
+  --out-soft: #EEF0F3;
+  --warn: #B4381F;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E1217; --surface: #161B22; --ink: #E6EAF0; --muted: #9AA4B2; --line: #29313B;
+    --accent: #3CC4A8; --accent-soft: #11302B;
+    --human: #E6A94E; --human-soft: #33270F; --llm: #AC8EF2; --llm-soft: #251C3A;
+    --algo: #74A7F2; --algo-soft: #15253B; --out: #7D8794; --out-soft: #1D232B; --warn: #F08A70;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E1217; --surface: #161B22; --ink: #E6EAF0; --muted: #9AA4B2; --line: #29313B;
+  --accent: #3CC4A8; --accent-soft: #11302B;
+  --human: #E6A94E; --human-soft: #33270F; --llm: #AC8EF2; --llm-soft: #251C3A;
+  --algo: #74A7F2; --algo-soft: #15253B; --out: #7D8794; --out-soft: #1D232B; --warn: #F08A70;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+code, .mono { font-family: var(--font-mono); font-size: .86em; }
+h1, h2 { font-family: var(--font-display); font-weight: 500; text-wrap: balance; letter-spacing: -.01em; margin: 0; }
+h2 { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem); line-height: 1.25; }
+h3 { font-size: 1.05rem; font-weight: 600; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+  display: grid; grid-template-columns: 1fr; gap: 40px;
+}
+@media (min-width: 980px) { .wrap { grid-template-columns: 200px minmax(0, 1fr); gap: 56px; } }
+
+/* contents rail */
+.toc { display: none; }
+@media (min-width: 980px) {
+  .toc { display: block; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; }
+  .toc ol { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 2px; counter-reset: t; }
+  .toc a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: .9rem; }
+  .toc a:hover { background: var(--surface); color: var(--ink); }
+  .toc .brand { font-family: var(--font-display); font-size: 1rem; color: var(--ink); }
+}
+
+main { display: grid; gap: 72px; min-width: 0; }
+section { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 24px; }
+.lead { color: var(--muted); max-width: 64ch; }
+
+/* hero */
+.hero { gap: 28px; }
+.hero h1 { font-size: clamp(2.2rem, 1.6rem + 3vw, 3.6rem); line-height: 1.05; }
+.hero h1 span { color: var(--accent); }
+.motto { font-size: 1.15rem; max-width: 60ch; }
+.motto b { font-weight: 600; }
+.status-line { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+.tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+.transform { display: grid; gap: 14px; grid-template-columns: 1fr; align-items: stretch; }
+@media (min-width: 760px) { .transform { grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1.25fr); } }
+.bubble { background: var(--surface); border: 1px solid var(--line); border-radius: 16px 16px 16px 4px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.bubble .who { font-size: .78rem; color: var(--human); font-weight: 600; }
+.bubble q { font-size: 1rem; quotes: "«" "»"; }
+.arrow { display: grid; place-items: center; color: var(--muted); font-family: var(--font-mono); font-size: .75rem; text-align: center; }
+.arrow svg { width: 28px; height: 28px; }
+@media (max-width: 759px) { .arrow svg { transform: rotate(90deg); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--accent-soft); }
+.card-head .num { font-family: var(--font-mono); font-weight: 500; }
+.pill { font-family: var(--font-mono); font-size: .72rem; padding: 2px 8px; border-radius: 999px; background: var(--surface); color: var(--accent); border: 1px solid var(--accent); white-space: nowrap; }
+.rows { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.rows td { padding: 7px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rows tr:last-child td { border-bottom: 0; }
+.rows td:nth-child(2) { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.origin { font-family: var(--font-mono); font-size: .68rem; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+.o-user { background: var(--human-soft); color: var(--human); }
+.o-ref { background: var(--algo-soft); color: var(--algo); }
+.o-none { background: var(--out-soft); color: var(--out); }
+.card-foot { padding: 10px 16px; font-size: .78rem; color: var(--muted); border-top: 1px solid var(--line); }
+.example-note { font-size: .8rem; color: var(--muted); }
+
+/* before / after */
+.ba { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; font-size: .95rem; }
+.ba th, .ba td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ba th { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--paper); }
+.ba tr:last-child td { border-bottom: 0; }
+.ba td:nth-child(2) { color: var(--muted); }
+.ba td:nth-child(3) { color: var(--accent); font-weight: 600; }
+.scroll { overflow-x: auto; }
+
+/* roles */
+.roles { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.role .kind { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); }
+.role ul { margin: 0; padding-left: 18px; font-size: .92rem; display: grid; gap: 3px; }
+.role .no { color: var(--muted); }
+.role .no li::marker { content: "✕  "; color: var(--warn); }
+
+/* legend & process */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.sw.h { background: var(--human); } .sw.l { background: var(--llm); } .sw.a { background: var(--algo); } .sw.o { background: var(--out); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; position: relative; padding-bottom: 18px; }
+.step::before { content: ""; position: absolute; left: 21px; top: 36px; bottom: 0; width: 2px; background: var(--line); }
+.step:last-child::before { display: none; }
+.dot { width: 44px; height: 36px; border-radius: 8px; display: grid; place-items: center; font-family: var(--font-mono); font-weight: 500; font-size: .85rem; }
+.h .dot { background: var(--human-soft); color: var(--human); }
+.l .dot { background: var(--llm-soft); color: var(--llm); }
+.a .dot { background: var(--algo-soft); color: var(--algo); }
+.o .dot { background: var(--out-soft); color: var(--out); }
+.step .body { display: grid; gap: 4px; padding-top: 6px; min-width: 0; }
+.step .who { font-size: .78rem; color: var(--muted); }
+.step .sub { margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: var(--surface); border: 1px dashed var(--line); font-size: .9rem; }
+.step.o .body h3 { color: var(--muted); font-weight: 500; }
+
+/* statuses */
+.lanes { display: grid; gap: 14px; }
+.lane { display: grid; gap: 8px; grid-template-columns: 1fr; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
+@media (min-width: 760px) { .lane { grid-template-columns: 170px minmax(0, 1fr); align-items: start; } }
+.lane .lname { font-size: .85rem; font-weight: 600; padding-top: 3px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { display: inline-grid; gap: 0; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); font-size: .85rem; line-height: 1.3; }
+.chip code { font-size: .7rem; color: var(--muted); }
+.chip.key { border-color: var(--human); background: var(--human-soft); }
+.chips .sep { color: var(--muted); font-size: .8rem; }
+
+/* rules */
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: r; }
+.rules li { counter-increment: r; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.rules li::before { content: counter(r); font-family: var(--font-display); font-size: 1.3rem; color: var(--accent); line-height: 1.2; }
+.rules p { color: var(--muted); font-size: .92rem; margin-top: 2px; }
+
+/* scope */
+.scope { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.scope > div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 10px; align-content: start; }
+.scope ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: .93rem; }
+.scope .out li { color: var(--muted); }
+.scope .out li span { color: var(--ink); }
+
+/* roadmap */
+.phases { display: grid; gap: 6px; }
+.phase { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.phase:last-child { border-bottom: 0; }
+.phase .id { font-family: var(--font-mono); font-weight: 500; padding-top: 1px; }
+.phase .info { display: grid; gap: 6px; min-width: 0; }
+.phase .top { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; }
+.phase .weeks { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar { height: 8px; border-radius: 4px; background: var(--out-soft); position: relative; overflow: hidden; }
+.bar .min { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 4px 0 0 4px; }
+.bar .max { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, var(--accent) 0 3px, transparent 3px 6px); opacity: .55; }
+.phase .gate { font-size: .88rem; color: var(--muted); }
+.phase.now .id { color: var(--accent); }
+.phase.now .top h3::after { content: "сейчас"; font-family: var(--font-mono); font-size: .68rem; font-weight: 500; margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--surface); vertical-align: 2px; }
+.scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: .7rem; color: var(--muted); padding-left: 64px; }
+.callout { background: var(--accent-soft); border-radius: var(--r); padding: 14px 16px; font-size: .93rem; }
+
+/* sdd */
+.pipe { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pipe .cmd { font-family: var(--font-mono); font-size: .82rem; padding: 6px 10px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); }
+.pipe .cmd.review { border-style: dashed; color: var(--muted); }
+.pipe .to { color: var(--muted); }
+.sdd-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.sdd-grid > div { display: grid; gap: 6px; align-content: start; }
+.sdd-grid p { font-size: .92rem; color: var(--muted); }
+
+/* blockers */
+.blk { width: 100%; border-collapse: collapse; font-size: .92rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.blk td, .blk th { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.blk th { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--paper); }
+.blk tr:last-child td { border-bottom: 0; }
+.blk td:first-child { font-family: var(--font-mono); white-space: nowrap; }
+
+/* glossary */
+.gl-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.gl-tools input { font: inherit; font-size: .95rem; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: min(100%, 320px); }
+.gl-count { font-size: .82rem; color: var(--muted); }
+.gloss { display: grid; gap: 0; grid-template-columns: 1fr; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; margin: 0; }
+.gloss > div { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+@media (min-width: 680px) { .gloss > div { grid-template-columns: 190px minmax(0, 1fr); gap: 16px; } }
+.gloss > div:last-child { border-bottom: 0; }
+.gloss dt { font-weight: 600; display: grid; gap: 0; }
+.gloss dt code { font-weight: 400; color: var(--muted); font-size: .75rem; }
+.gloss dd { margin: 0; color: var(--muted); font-size: .93rem; }
+
+/* map */
+.map { display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.map a { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 11px 16px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+@media (min-width: 680px) { .map a { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; } }
+.map a:last-child { border-bottom: 0; }
+.map a:hover { background: var(--accent-soft); }
+.map code { color: var(--accent); word-break: break-all; }
+
+footer { font-size: .82rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .transform .card { animation: rise .6s ease-out .15s both; }
+  @keyframes rise { from { transform: translateY(6px); } to { transform: none; } }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Содержание">
+    <div class="brand">StaffAI</div>
+    <ol>
+      <li><a href="#why">Зачем</a></li>
+      <li><a href="#roles">Кто участвует</a></li>
+      <li><a href="#process">Процесс</a></li>
+      <li><a href="#statuses">Статусы</a></li>
+      <li><a href="#rules">Пять правил</a></li>
+      <li><a href="#mvp">Что в MVP</a></li>
+      <li><a href="#roadmap">Дорожная карта</a></li>
+      <li><a href="#sdd">Как мы работаем</a></li>
+      <li><a href="#blockers">Что не решено</a></li>
+      <li><a href="#glossary">Словарь</a></li>
+      <li><a href="#map">Где что лежит</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section class="hero" aria-labelledby="h-hero">
+      <div class="eyebrow">Онбординг · внутренний проект</div>
+      <h1 id="h-hero">Staff<span>AI</span></h1>
+      <p class="motto">Владелец продукта описывает, каких ИТ-специалистов ему нужно, <b>один раз и простым языком</b>. StaffAI превращает это в проверенную заявку, проект спецификации и данные для ЗНР. Решения остаются за человеком.</p>
+      <div class="status-line">
+        <span class="tag"><i></i>Фаза Ф0: подготовка</span>
+        <span class="tag">Требования систематизированы</span>
+        <span class="tag">Процесс SDD настроен</span>
+        <span class="tag">Есть демо-прототип</span>
+      </div>
+
+      <div class="transform" role="group" aria-label="Пример: фраза заказчика становится карточкой запроса">
+        <div class="bubble">
+          <div class="who">Заказчик пишет в чат</div>
+          <q>Нужна команда на 8 месяцев: 3 Java backend-разработчика, 2 middle и 1 senior, 2 системных аналитика, 2 autotest QA. Аналитики и бэкенд срочно, QA через месяц.</q>
+        </div>
+        <div class="arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M14 6l6 6-6 6"/></svg>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="num">REQ-2026-00521</span>
+            <span class="pill">awaiting_customer_confirmation</span>
+          </div>
+          <table class="rows">
+            <tbody>
+              <tr><td>Java backend-разработчик · middle <span class="origin o-ref">справочник</span></td><td>× 2</td></tr>
+              <tr><td>Java backend-разработчик · senior <span class="origin o-ref">справочник</span></td><td>× 1</td></tr>
+              <tr><td>Системный аналитик <span class="origin o-user">со слов заказчика</span></td><td>× 2</td></tr>
+              <tr><td>Autotest QA · старт через месяц <span class="origin o-user">со слов заказчика</span></td><td>× 2</td></tr>
+              <tr><td>Точная дата старта <span class="origin o-none">не найдено → вопрос</span></td><td>—</td></tr>
+            </tbody>
+          </table>
+          <div class="card-foot">Договор, ставки, CI и бюджет заказчик не видит. Их подтягивает система, проверяет штаб.</div>
+        </div>
+      </div>
+      <p class="example-note">Пример условный, взят из ТЗ. Уверенность и источники каждого вывода видит только исполнитель.</p>
+    </section>
+
+    <section id="why" aria-labelledby="h-why">
+      <div class="eyebrow">Зачем</div>
+      <h2 id="h-why">Заказ внешних специалистов занимает недели</h2>
+      <p class="lead">Заказчику приходится знать номера договоров, бюджетные коды, CI и формат ЗНР, хотя это не его работа. Одни и те же данные вводятся несколько раз. Штаб получает сырые запросы и вручную собирает недостающее по каждой заявке.</p>
+      <div class="scroll">
+        <table class="ba">
+          <thead><tr><th>Показатель</th><th>Сейчас</th><th>Цель</th></tr></thead>
+          <tbody>
+            <tr><td>От обращения до проверенного запроса</td><td>дни–недели переписки</td><td>минуты–часы</td></tr>
+            <tr><td>Полный цикл до ЗНР</td><td>недели</td><td>в 2+ раза быстрее</td></tr>
+            <tr><td>Ввод одних и тех же данных</td><td>3–4 раза</td><td>один раз</td></tr>
+            <tr><td>Первичный разбор заявки штабом</td><td>ручной сбор</td><td>минуты на готовую карточку</td></tr>
+            <tr><td>Прозрачность</td><td>единого статуса нет</td><td>статус на каждом шаге</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="example-note">Цели предварительные. Базовую линию штаб замеряет до пилота, после пилота цифры пересчитываются.</p>
+    </section>
+
+    <section id="roles" aria-labelledby="h-roles">
+      <div class="eyebrow">Кто участвует</div>
+      <h2 id="h-roles">У каждого своя зона, и они не пересекаются</h2>
+      <div class="roles">
+        <div class="role">
+          <div class="kind">customer</div>
+          <h3>Заказчик</h3>
+          <ul><li>описывает потребность: текст, файл, шаблон</li><li>отвечает на уточнения</li><li>подтверждает карточку запроса</li></ul>
+          <ul class="no"><li>не выбирает договор и подрядчика</li><li>не вводит ставки, CI, бюджет</li></ul>
+        </div>
+        <div class="role">
+          <div class="kind">staff</div>
+          <h3>Исполнитель (штаб)</h3>
+          <ul><li>проверяет выводы AI</li><li>уточняет у заказчика в чате</li><li>выбирает подрядчика</li><li>правит и отправляет проект спецификации</li></ul>
+          <ul class="no"><li>не собирает данные с нуля</li><li>не переносит данные между системами</li></ul>
+        </div>
+        <div class="role">
+          <div class="kind">ai</div>
+          <h3>AI-агент (GigaChat)</h3>
+          <ul><li>понимает и структурирует запрос</li><li>задаёт 3–5 вопросов по существу</li><li>объясняет ошибки простым языком</li><li>пишет черновики артефактов</li></ul>
+          <ul class="no"><li>ничего не решает и не меняет статусы</li><li>не выдумывает договоры, ставки, CI</li></ul>
+        </div>
+        <div class="role">
+          <div class="kind">admin</div>
+          <h3>Администратор</h3>
+          <ul><li>шаблоны запросов</li><li>справочники и правила проверки</li><li>доступы и журналы</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="process" aria-labelledby="h-process">
+      <div class="eyebrow">Процесс Этапа 1</div>
+      <h2 id="h-process">Десять шагов от фразы до ЗНР</h2>
+      <div class="legend" aria-label="Кто выполняет шаг">
+        <span><i class="sw h"></i>Человек</span>
+        <span><i class="sw l"></i>LLM</span>
+        <span><i class="sw a"></i>Алгоритм</span>
+        <span><i class="sw o"></i>Вне системы</span>
+      </div>
+      <ol class="steps">
+        <li class="step h"><div class="dot">1</div><div class="body"><h3>Вход по СУДИР, диалог с агентом</h3><div class="who">Заказчик · текст, файлы TXT/MD/DOCX/PDF/XLSX, шаблон</div></div></li>
+        <li class="step l"><div class="dot">2</div><div class="body"><h3>Разбор обращения</h3><div class="who">LLM · роли, грейды, количество, сроки, стек, формат, контекст; нормализация по справочникам</div><div class="sub">Если это вопрос о порядке оформления, агент отвечает по базе знаний. Заявка не создаётся.</div></div></li>
+        <li class="step l"><div class="dot">3</div><div class="body"><h3>Уточняющий диалог</h3><div class="who">LLM · не больше 3–5 вопросов за раз, противоречия подсвечиваются и не блокируют</div></div></li>
+        <li class="step a"><div class="dot">4</div><div class="body"><h3>Проверка и валидация</h3><div class="who">Алгоритм · обязательные поля, справочники, договоры в КАП → отчёт с флагами</div><div class="sub"><b>4а.</b> Нашлись ошибки: LLM объясняет их понятным языком, заказчик исправляет. Число итераций ограничено, дальше эскалация на исполнителя.</div></div></li>
+        <li class="step h"><div class="dot">5</div><div class="body"><h3>Карточка запроса и подтверждение</h3><div class="who">Заказчик · «Подтвердить», «Изменить» или «Задать вопрос»</div></div></li>
+        <li class="step h"><div class="dot">6</div><div class="body"><h3>Работа исполнителя</h3><div class="who">Штаб · проверка выводов AI, чат с заказчиком, выбор подрядчика из рекомендаций, привязка к инициативе</div></div></li>
+        <li class="step l"><div class="dot">7</div><div class="body"><h3>Проект спецификации</h3><div class="who">LLM + алгоритм · шаблон, карточка и договорные данные; версии; DOCX, PDF, JSON</div></div></li>
+        <li class="step h"><div class="dot">8</div><div class="body"><h3>Решение исполнителя</h3><div class="who">Человек · отправить, вернуть или скорректировать. Этот шаг всегда за человеком</div></div></li>
+        <li class="step a"><div class="dot">9</div><div class="body"><h3>Рассылка на согласование</h3><div class="who">Алгоритм · подрядчику по почте, исполнителю, заказчику; статусы ответов</div></div></li>
+        <li class="step a"><div class="dot">10</div><div class="body"><h3>Пакеты для downstream</h3><div class="who">Алгоритм · JSON для черновика ЗНР в ЛК и пакет Epic/Story для трекера</div></div></li>
+        <li class="step o"><div class="dot">→</div><div class="body"><h3>Согласование, ЗНР в ЛК, ЭДО, ЕСУП, выполнение работ</h3><div class="who">Действующие системы и процессы. Результат фиксируется статусом заявки</div></div></li>
+      </ol>
+    </section>
+
+    <section id="statuses" aria-labelledby="h-statuses">
+      <div class="eyebrow">Жизненный цикл</div>
+      <h2 id="h-statuses">Одна потребность — одна заявка</h2>
+      <p class="lead">Статусы меняет только детерминированная логика. Оранжевым выделен единственный переход, который делает только человек. Таблица переходов ещё проверяется системным аналитиком.</p>
+      <div class="lanes">
+        <div class="lane"><div class="lname">Приём</div>
+          <div class="chips">
+            <span class="chip">Черновик<code>draft</code></span><span class="sep">→</span>
+            <span class="chip">AI-приём<code>ai_intake</code></span><span class="sep">⇄</span>
+            <span class="chip">Ждёт уточнений<code>awaiting_customer_clarification</code></span><span class="sep">→</span>
+            <span class="chip">Ждёт подтверждения<code>awaiting_customer_confirmation</code></span><span class="sep">→</span>
+            <span class="chip">Запрос сформирован<code>request_formed</code></span>
+          </div></div>
+        <div class="lane"><div class="lname">Штаб</div>
+          <div class="chips">
+            <span class="chip">Передано штабу<code>submitted_to_staff</code></span><span class="sep">→</span>
+            <span class="chip">Проверка штабом<code>staff_review</code></span><span class="sep">→</span>
+            <span class="chip">Выбор подрядчика<code>contractor_selection</code></span><span class="sep">→</span>
+            <span class="chip">Подготовка спецификации<code>specification_drafting</code></span><span class="sep">→</span>
+            <span class="chip key">Решение исполнителя<code>executor_decision</code></span>
+          </div></div>
+        <div class="lane"><div class="lname">Согласование и оформление</div>
+          <div class="chips">
+            <span class="chip">Отправлено на согласование<code>sent_for_approval</code></span><span class="sep">→</span>
+            <span class="chip">Согласовано<code>approved</code></span><span class="sep">→</span>
+            <span class="chip">Оформление ЗНР<code>znr_processing</code></span><span class="sep">→</span>
+            <span class="chip">Исполнение<code>in_execution</code></span><span class="sep">→</span>
+            <span class="chip">Завершено<code>completed</code></span>
+          </div></div>
+        <div class="lane"><div class="lname">Дополнительные</div>
+          <div class="chips">
+            <span class="chip">Запрошено изменение<code>change_requested</code></span>
+            <span class="chip">Возвращено<code>returned</code></span>
+            <span class="chip">Приостановлено<code>suspended</code></span>
+            <span class="chip">Отменено<code>cancelled</code></span>
+            <span class="chip">В архиве<code>archived</code></span>
+          </div></div>
+      </div>
+    </section>
+
+    <section id="rules" aria-labelledby="h-rules">
+      <div class="eyebrow">Неизменные правила</div>
+      <h2 id="h-rules">Пять правил, которые нельзя нарушать</h2>
+      <ol class="rules">
+        <li><div><h3>Заказчик не делает работу бэк-офиса</h3><p>Договор, ставки, CI, бюджетные коды и этапы спецификации он не вводит и не видит. Это проверяется на уровне API, а не только в интерфейсе.</p></div></li>
+        <li><div><h3>Решения принимает человек</h3><p>Выбор подрядчика, бюджет и отправку на согласование делает исполнитель. AI только рекомендует.</p></div></li>
+        <li><div><h3>LLM не управляет системой</h3><p>Статусы, доступ, расчёты, проверки и рассылки выполняет детерминированный код.</p></div></li>
+        <li><div><h3>Модель не выдумывает</h3><p>Договоры, ставки, CI и бюджет берутся только из КАП и справочников. Если данных нет, система отвечает «не найдено». У каждого вывода есть уверенность и источник.</p></div></li>
+        <li><div><h3>Всё записывается, ничего не перетирается</h3><p>Каждое значимое действие попадает в журнал событий, изменения сохраняются как новые версии. Сбой внешней системы переводит процесс в деградированный режим, но не останавливает его.</p></div></li>
+      </ol>
+    </section>
+
+    <section id="mvp" aria-labelledby="h-mvp">
+      <div class="eyebrow">Границы</div>
+      <h2 id="h-mvp">Что входит в MVP</h2>
+      <div class="scope">
+        <div>
+          <h3>Входит в Этап 1</h3>
+          <ul>
+            <li>Веб-диалог: текст, файлы, шаблоны</li>
+            <li>Уточнения и ответы по базе знаний процесса</li>
+            <li>Проверка по правилам и договорам КАП, цикл пояснений ошибок</li>
+            <li>Карточка запроса, «Мои заявки», личные шаблоны</li>
+            <li>Рабочее место штаба, варианты подрядчиков</li>
+            <li>Проект спецификации: версии, DOCX, PDF, JSON</li>
+            <li>Решение исполнителя, рассылка на согласование</li>
+            <li>Конфигурационный пакет для ЛК и пакет для трекера</li>
+          </ul>
+        </div>
+        <div class="out">
+          <h3>Не входит</h3>
+          <ul>
+            <li><span>Голосовой ввод</span> · вне Этапа 1</li>
+            <li><span>Приём обращений по почте</span> · ждёт решения АР-01</li>
+            <li><span>Автосоздание Epic/Story</span> · Фаза 2</li>
+            <li><span>Создание ЗНР через API ЛК</span> · целевой контур</li>
+            <li><span>Оплата, учёт НМА</span> · целевая АС</li>
+            <li><span>Автономные решения AI</span> · только отдельным изменением требований</li>
+          </ul>
+        </div>
+      </div>
+      <p class="example-note">Демо-прототип местами шире MVP: в нём есть голос, автосоздание Epic и создание ЗНР в ЛК. Для требований он не источник.</p>
+    </section>
+
+    <section id="roadmap" aria-labelledby="h-roadmap">
+      <div class="eyebrow">Дорожная карта</div>
+      <h2 id="h-roadmap">От подготовки до пилота: 5–6 месяцев</h2>
+      <p class="lead">Длина полосы показывает оценку фазы в неделях: сплошная часть — минимум, штриховка — запас до максимума. Оценки предварительные, команда их ещё подтверждает.</p>
+      <div class="phases">
+        <div class="scale" aria-hidden="true"><span>0</span><span>2 нед</span><span>4 нед</span><span>6 нед</span></div>
+        <div class="phase now"><div class="id">Ф0</div><div class="info"><div class="top"><h3>Подготовка и снятие блокеров</h3><span class="weeks">2–3 нед</span></div><div class="bar"><span class="min" style="width:33.3%"></span><span class="max" style="left:33.3%;width:16.7%"></span></div><div class="gate">Утверждён скоуп MVP, есть ресурсы и доступы</div></div></div>
+        <div class="phase"><div class="id">Ф1</div><div class="info"><div class="top"><h3>Каркас платформы</h3><span class="weeks">3–4 нед</span></div><div class="bar"><span class="min" style="width:50%"></span><span class="max" style="left:50%;width:16.7%"></span></div><div class="gate">«Пустая» заявка проходит жизненный цикл, вход по СУДИР работает</div></div></div>
+        <div class="phase"><div class="id">Ф2</div><div class="info"><div class="top"><h3>AI-агент и рабочее место заказчика</h3><span class="weeks">4–5 нед</span></div><div class="bar"><span class="min" style="width:66.7%"></span><span class="max" style="left:66.7%;width:16.7%"></span></div><div class="gate">Путь заказчика до подтверждённой карточки; точность извлечения не ниже порога</div></div></div>
+        <div class="phase"><div class="id">Ф3</div><div class="info"><div class="top"><h3>Проверка, валидация, база знаний</h3><span class="weeks">3–4 нед</span></div><div class="bar"><span class="min" style="width:50%"></span><span class="max" style="left:50%;width:16.7%"></span></div><div class="gate">Заявка с ошибками → пояснения → исправление. Идёт параллельно с Ф4, если хватает бэкенда</div></div></div>
+        <div class="phase"><div class="id">Ф4</div><div class="info"><div class="top"><h3>Штаб, спецификация, согласование</h3><span class="weeks">4–5 нед</span></div><div class="bar"><span class="min" style="width:66.7%"></span><span class="max" style="left:66.7%;width:16.7%"></span></div><div class="gate">Сквозной прогон Этапа 1 на стенде, демо штабу</div></div></div>
+        <div class="phase"><div class="id">Ф5</div><div class="info"><div class="top"><h3>Пакеты для ЛК и трекера</h3><span class="weeks">2–3 нед</span></div><div class="bar"><span class="min" style="width:33.3%"></span><span class="max" style="left:33.3%;width:16.7%"></span></div><div class="gate">Конфигурация принята тестовым контуром ЛК</div></div></div>
+        <div class="phase"><div class="id">Ф6</div><div class="info"><div class="top"><h3>НФТ, ИБ, ПСИ, пилот</h3><span class="weeks">4–6 нед</span></div><div class="bar"><span class="min" style="width:66.7%"></span><span class="max" style="left:66.7%;width:33.3%"></span></div><div class="gate">Промышленный контур, пилот завершён</div></div></div>
+      </div>
+      <div class="callout"><b>Критический путь:</b> интеграции с КАП (проверки, подбор подрядчика, ставки) и с ЛК (ЗНР). Для обоих есть заглушки, поэтому разработка не стоит, но без живых интеграций ценность продукта ограничена.</div>
+    </section>
+
+    <section id="sdd" aria-labelledby="h-sdd">
+      <div class="eyebrow">Как мы работаем</div>
+      <h2 id="h-sdd">Сначала спецификация, потом код</h2>
+      <p class="lead">Каждая фича проходит один и тот же путь. Команды выполняет Claude Code; любой другой ИИ-агент или человек может пройти тот же путь по Markdown-инструкциям из <code>.claude/commands/</code>.</p>
+      <div class="pipe" aria-label="Порядок шагов">
+        <span class="cmd">/sber-intent</span><span class="to">→</span>
+        <span class="cmd">/sdd.specify</span><span class="to">→</span>
+        <span class="cmd">/sdd.clarify</span><span class="to">→</span>
+        <span class="cmd review">ревью: штаб и техлид</span><span class="to">→</span>
+        <span class="cmd">/sdd.plan</span><span class="to">→</span>
+        <span class="cmd">/sdd.tasks</span><span class="to">→</span>
+        <span class="cmd">/sdd.implement</span><span class="to">→</span>
+        <span class="cmd">/sdd.analyze</span>
+      </div>
+      <div class="sdd-grid">
+        <div><h3>spec.md — что и зачем</h3><p>Сценарии «Дано / Когда / Тогда», требования со ссылками на ТЗ. Без стека и таблиц БД.</p></div>
+        <div><h3>plan.md — как</h3><p>Стек, модель данных, контракты. Каждый план сверяется с 17 статьями конституции.</p></div>
+        <div><h3>tasks.md — в каком порядке</h3><p>Небольшие задачи, тест пишется раньше кода, у каждой задачи есть ссылка на требование.</p></div>
+        <div><h3>Не додумывать</h3><p>Если что-то неясно, ставим <code>[NEEDS CLARIFICATION]</code> в спецификации и добавляем вопрос в общий реестр.</p></div>
+      </div>
+    </section>
+
+    <section id="blockers" aria-labelledby="h-blockers">
+      <div class="eyebrow">Что ещё не решено</div>
+      <h2 id="h-blockers">Главные открытые вопросы</h2>
+      <div class="scroll">
+        <table class="blk">
+          <thead><tr><th>№</th><th>Вопрос</th><th>Что блокирует</th></tr></thead>
+          <tbody>
+            <tr><td>АР-02</td><td>Где размещать систему: FinAI или ЛК заказчика ИТ-ресурсов</td><td>Модель интеграции, стек, Ф6</td></tr>
+            <tr><td>ОВ-01</td><td>Технологический стек: backend, БД, очередь, фронтенд</td><td>Все технические планы</td></tr>
+            <tr><td>ТУ-02</td><td>Проверка статусной модели системным аналитиком</td><td>Спецификация 001</td></tr>
+            <tr><td>ТУ-01, ТУ-04</td><td>Подключение к СУДИР и GigaChat: версия модели, лимиты, контур</td><td>Вход, AI-агент</td></tr>
+            <tr><td>ТУ-05, ТУ-06</td><td>API КАП; механизм ЗНР и формат пакета для ЛК</td><td>Критический путь</td></tr>
+            <tr><td>ТУ-03</td><td>Единый шаблон спецификации и контрольный перечень проверок от штаба</td><td>Ф3, Ф4</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="example-note">Полный реестр: 2 архитектурных решения, 11 уточнений из ТЗ и 14 вопросов, найденных командой.</p>
+    </section>
+
+    <section id="glossary" aria-labelledby="h-glossary">
+      <div class="eyebrow">Словарь</div>
+      <h2 id="h-glossary">Термины, которые встретятся в первый день</h2>
+      <div class="gl-tools">
+        <label for="gl-q" class="eyebrow">Поиск</label>
+        <input id="gl-q" type="search" placeholder="Например, ЗНР или карточка" autocomplete="off">
+        <span class="gl-count" id="gl-count" aria-live="polite"></span>
+      </div>
+      <dl class="gloss" id="gloss">
+        <div><dt>ЗНР<code>ResourceRequest</code></dt><dd>Заявка на ресурс. Оформляется в ЛК, итоговая точка процесса оформления</dd></div>
+        <div><dt>ЛК<code>lk</code></dt><dd>Личный кабинет заказчика ИТ-ресурсов, внешняя система. StaffAI готовит для неё JSON-пакет</dd></div>
+        <div><dt>КАП<code>kap</code></dt><dd>Хранилище данных о рамочных договорах, ролях, тарифах и бюджете. Источник истины по договорам</dd></div>
+        <div><dt>СУДИР<code>sudir</code></dt><dd>Корпоративная система единого входа</dd></div>
+        <div><dt>Штаб, исполнитель<code>Staff, Executor</code></dt><dd>Операционное подразделение, которое обрабатывает заказы, и его сотрудник, ведущий заявку</dd></div>
+        <div><dt>Заявка<code>Request</code></dt><dd>Единая сущность одного запроса: статусы, история, артефакты. Определяется по номеру, а не по названию</dd></div>
+        <div><dt>Карточка запроса<code>RequestCard</code></dt><dd>Структурированная потребность, которую собрал агент и подтвердил заказчик</dd></div>
+        <div><dt>Проект спецификации<code>SpecificationDraft</code></dt><dd>Черновик спецификации к рамочному договору. У него есть версии, экспорт в DOCX/PDF и JSON</dd></div>
+        <div><dt>Отчёт о проверке<code>ValidationReport</code></dt><dd>Результат проверок с флагами: без замечаний, превышение бюджета, близко к лимиту, нужно продление договора</dd></div>
+        <div><dt>CI<code>ciCode</code></dt><dd>Код автоматизированной системы или модуля, над которым ведутся работы. Заказчик его не вводит</dd></div>
+        <div><dt>Грейд<code>Grade</code></dt><dd>Уровень специалиста: junior, middle, senior</dd></div>
+        <div><dt>Календаризация<code>Calendarization</code></dt><dd>Даты старта и окончания по каждой позиции. Команда может подключаться поэтапно</dd></div>
+        <div><dt>ЕСУП<code>—</code></dt><dd>Система исполнения после ЛК. Прямой интеграции с ней нет</dd></div>
+        <div><dt>ПСИ, ПРОМ<code>—</code></dt><dd>Приёмо-сдаточные испытания и промышленный контур эксплуатации</dd></div>
+        <div><dt>Human-in-the-loop<code>—</code></dt><dd>Принцип: все значимые решения принимает человек</dd></div>
+      </dl>
+    </section>
+
+    <section id="map" aria-labelledby="h-map">
+      <div class="eyebrow">Репозиторий</div>
+      <h2 id="h-map">Где что лежит</h2>
+      <nav class="map" aria-label="Документы репозитория">
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/docs/onboarding.md"><span>Проект за 10 минут, текстом</span><code>docs/onboarding.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/docs/product/vision.md"><span>Видение продукта</span><code>docs/product/vision.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/docs/product/glossary.md"><span>Полный глоссарий и имена в коде</span><code>docs/product/glossary.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/docs/domain/process.md"><span>Процесс со схемой</span><code>docs/domain/process.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/docs/sources/README.md"><span>Первоисточники и что главнее</span><code>docs/sources/README.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/.specify/memory/constitution.md"><span>Конституция проекта</span><code>.specify/memory/constitution.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/specs/README.md"><span>Реестр спецификаций</span><code>specs/README.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/docs/open-questions.md"><span>Открытые вопросы</span><code>docs/open-questions.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/blob/main/AGENTS.md"><span>Инструкции для ИИ-агентов</span><code>AGENTS.md</code></a>
+        <a href="https://github.com/BorisChubiryaev/StaffAI/tree/main/prototype"><span>Демо-прототип: <code>npm ci && npm run dev</code></span><code>prototype/</code></a>
+      </nav>
+    </section>
+
+    <footer>Страница собрана по документам репозитория StaffAI на 15 октября 2026. Если она расходится с репозиторием, верен репозиторий.</footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var q = document.getElementById('gl-q');
+  var items = Array.prototype.slice.call(document.querySelectorAll('#gloss > div'));
+  var count = document.getElementById('gl-count');
+  function apply() {
+    var v = (q.value || '').trim().toLowerCase();
+    var shown = 0;
+    items.forEach(function (el) {
+      var hit = !v || el.textContent.toLowerCase().indexOf(v) !== -1;
+      el.hidden = !hit;
+      if (hit) shown++;
+    });
+    count.textContent = v ? (shown ? 'Найдено: ' + shown : 'Ничего не найдено. Полный список — в glossary.md') : '';
+  }
+  q.addEventListener('input', apply);
+})();
+</script>
+</body>
+</html>
