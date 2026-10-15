@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>StaffAI — Схема работы агента</title>
+<style>* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #f0f2f5; font-family: Arial, "Segoe UI", sans-serif; padding: 24px; }
+.slide {
+  position: relative;
+  width: 1280px; height: 720px;
+  background: #ffffff;
+  margin: 0 auto 28px;
+  border: 1px solid #dfe3ea;
+  overflow: hidden;
+  page-break-after: always;
+}
+.panel {
+  position: absolute; inset: 88px 16px 16px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f1f7fe 0%, #e2edfb 100%);
+  border: 1px solid #d7e3f4;
+}
+.title {
+  position: absolute; top: 20px; left: 34px;
+  font-size: 29px; font-weight: 800; color: #21365e; letter-spacing: .1px;
+}
+.subtitle {
+  position: absolute; top: 55px; left: 35px;
+  font-size: 14px; font-weight: 500; color: #5b6b8c;
+}
+.proj {
+  position: absolute; top: 24px; right: 34px;
+  font-size: 12px; font-weight: 700; color: #9aa3b2; letter-spacing: 1.5px;
+}
+.wires { position: absolute; inset: 0; width: 1280px; height: 720px; pointer-events: none; }
+.wire { fill: none; stroke: #2E6DB4; stroke-width: 2; }
+.wire.dash { stroke-dasharray: 5 4; stroke: #7f93b4; }
+.box {
+  position: absolute;
+  background: #fff;
+  border: 2px solid #3DA0C7;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 12px 16px;
+  font-size: 13px; line-height: 1.22; color: #21283a;
+  box-shadow: 0 2px 5px rgba(30,50,90,.12);
+}
+.box.algo   { border-color: #6E4B9E; }
+.box.llm    { border-color: #E0912F; }
+.box.human  { border-color: #2E8B6B; }
+.box.entry  { border-color: #3DA0C7; }
+.box.notdev { border-color: #B9BEC7; background: #edeff2; color: #5c6472; box-shadow: none; }
+.box.stage  { border: none; background: linear-gradient(180deg, #F6A83C 0%, #EE7B1C 100%); color: #fff; font-weight: 700; }
+.box b { font-weight: 700; }
+.box .tu { color: #C00000; font-weight: 700; }
+.numc {
+  position: absolute; width: 32px; height: 32px; border-radius: 50%;
+  background: #fff; border: 2px solid #8a93a3;
+  color: #34405a; font-weight: 800; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+}
+.elabel {
+  position: absolute; text-align: center; font-size: 12px; font-style: italic;
+  color: #43506b; background: rgba(241,247,254,.9); padding: 1px 4px; border-radius: 3px;
+}
+.elabel.strong { font-style: normal; font-weight: 800; font-size: 15px; color: #21365e; background: transparent; }
+.legend {
+  position: absolute; bottom: 22px; left: 34px;
+  display: flex; gap: 22px; align-items: center;
+}
+.lgi { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #33405a; }
+.sw { width: 20px; height: 15px; border-radius: 4px; border: 2px solid #999; background: #fff; display: inline-block; }
+.sw.algo   { border-color: #6E4B9E; }
+.sw.llm    { border-color: #E0912F; }
+.sw.human  { border-color: #2E8B6B; }
+.sw.entry  { border-color: #3DA0C7; }
+.sw.notdev { border-color: #B9BEC7; background: #edeff2; }
+.sw.stage  { border: none; background: linear-gradient(180deg, #F6A83C, #EE7B1C); }
+
+.annot {
+  position: absolute; font-size: 11px; font-weight: 700; color: #7a8194;
+  text-transform: uppercase; letter-spacing: .4px; line-height: 1.25; text-align: right;
+}
+.sheet { position: absolute; inset: 96px 34px 60px 34px; overflow: hidden; }
+.sheet table { width: 100%; border-collapse: collapse; font-size: 12px; color: #222; }
+.sheet th { background: #21365e; color: #fff; font-weight: 700; text-align: left; padding: 6px 9px; border: 1px solid #d7dde6; }
+.sheet td { padding: 5px 9px; border: 1px solid #d7dde6; vertical-align: top; line-height: 1.22; }
+.sheet tr:nth-child(even) td { background: #f4f7fb; }
+.sheet .sec td { background: #e6ecf5; font-weight: 700; }
+.sheet h3 { font-size: 14px; color: #21365e; margin: 10px 0 4px; }
+.sheet ol { margin: 2px 0 0 18px; } .sheet ol li { font-size: 12px; margin-bottom: 2px; line-height: 1.25; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>// Slide render engine — fixed 1280x720 canvas, SVG orthogonal arrows.
+function anchor(b, side) {
+  const map = {
+    t: [b.x + b.w / 2, b.y],
+    b: [b.x + b.w / 2, b.y + b.h],
+    l: [b.x, b.y + b.h / 2],
+    r: [b.x + b.w, b.y + b.h / 2],
+    c: [b.x + b.w / 2, b.y + b.h / 2],
+    tl: [b.x + b.w * 0.28, b.y], tr: [b.x + b.w * 0.72, b.y],
+    bl: [b.x + b.w * 0.28, b.y + b.h], br: [b.x + b.w * 0.72, b.y + b.h],
+  };
+  return map[side];
+}
+
+function renderSlide(spec) {
+  const boxMap = {};
+  (spec.boxes || []).forEach(b => boxMap[b.id] = b);
+
+  const slide = document.createElement("div");
+  slide.className = "slide";
+
+  const panel = document.createElement("div");
+  panel.className = "panel";
+  slide.appendChild(panel);
+
+  const title = document.createElement("div");
+  title.className = "title";
+  title.textContent = spec.title;
+  slide.appendChild(title);
+
+  if (spec.subtitle) {
+    const st = document.createElement("div");
+    st.className = "subtitle";
+    st.textContent = spec.subtitle;
+    slide.appendChild(st);
+  }
+
+  const proj = document.createElement("div");
+  proj.className = "proj";
+  proj.textContent = "ПРОЕКТ";
+  slide.appendChild(proj);
+
+  // SVG layer
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", "wires");
+  svg.setAttribute("viewBox", "0 0 1280 720");
+  const defs = document.createElementNS(svgNS, "defs");
+  defs.innerHTML = `<marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+    <path d="M0,0 L7,3.2 L0,6.4 Z" fill="#2E6DB4"/></marker>`;
+  svg.appendChild(defs);
+  slide.appendChild(svg);
+
+  (spec.arrows || []).forEach(a => {
+    const [fid, fside] = a.from.split(":");
+    const [tid, tside] = a.to.split(":");
+    const p0 = anchor(boxMap[fid], fside);
+    const p1 = anchor(boxMap[tid], tside);
+    const pts = [p0, ...(a.via || []), p1];
+    const d = "M " + pts.map(p => p.join(" ")).join(" L ");
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "wire" + (a.dash ? " dash" : ""));
+    path.setAttribute("marker-end", "url(#ah)");
+    svg.appendChild(path);
+  });
+
+  // free-form annotations
+  (spec.annots || []).forEach(an => {
+    const el = document.createElement("div");
+    el.className = "annot";
+    el.style.left = an.x + "px";
+    el.style.top = an.y + "px";
+    el.style.width = (an.w || 180) + "px";
+    el.innerHTML = an.html;
+    slide.appendChild(el);
+  });
+
+  // sheet (raw HTML content, e.g. tables)
+  if (spec.sheet) {
+    const sh = document.createElement("div");
+    sh.className = "sheet";
+    sh.innerHTML = spec.sheet;
+    slide.appendChild(sh);
+  }
+
+  // boxes
+  (spec.boxes || []).forEach(b => {
+    const el = document.createElement("div");
+    el.className = "box " + (b.cls || "");
+    el.style.left = b.x + "px";
+    el.style.top = b.y + "px";
+    el.style.width = b.w + "px";
+    el.style.height = b.h + "px";
+    if (b.fs) el.style.fontSize = b.fs + "px";
+    el.innerHTML = b.html;
+    slide.appendChild(el);
+  });
+
+  // numbered circles
+  (spec.nums || []).forEach(n => {
+    const c = document.createElement("div");
+    c.className = "numc";
+    c.style.left = (n.x - 16) + "px";
+    c.style.top = (n.y - 16) + "px";
+    c.textContent = n.n;
+    slide.appendChild(c);
+  });
+
+  // edge labels
+  (spec.labels || []).forEach(l => {
+    const el = document.createElement("div");
+    el.className = "elabel" + (l.strong ? " strong" : "");
+    el.style.left = (l.x - 60) + "px";
+    el.style.top = (l.y - 12) + "px";
+    el.style.width = "120px";
+    el.textContent = l.text;
+    slide.appendChild(el);
+  });
+
+  // legend
+  if (spec.legend) {
+    const lg = document.createElement("div");
+    lg.className = "legend";
+    spec.legend.forEach(([label, cls]) => {
+      const item = document.createElement("div");
+      item.className = "lgi";
+      item.innerHTML = `<span class="sw ${cls}"></span>${label}`;
+      lg.appendChild(item);
+    });
+    slide.appendChild(lg);
+  }
+
+  document.getElementById("root").appendChild(slide);
+}
+
+function renderAll(slides) { slides.forEach(renderSlide); }
+</script>
+<script>const LEG3 = [["Алгоритм","algo"],["LLM","llm"],["Человек","human"],["Не участвует в разработке","notdev"],["Этап 2","stage"]];
+
+const SLIDES_03 = [
+// ============ Slide 1: основной флоу ============
+{
+  title: "Работа агента внутри сервиса",
+  subtitle: "Основной флоу, шаги 1–6",
+  boxes: [
+    {id:"a", x:150, y:110, w:980, h:62, cls:"entry", fs:13,
+     html:"Заказчик начинает диалог в веб-сервисе (вход по СУДИР): описывает потребность, при необходимости прикладывает документы"},
+    {id:"B", x:180, y:214, w:300, h:88, cls:"llm", fs:12,
+     html:"<div><b>Обработка входной информации:</b> классификация, извлечение ролей и сроков, нормализация по справочникам</div>"},
+    {id:"C", x:560, y:222, w:300, h:72, cls:"llm", fs:12,
+     html:"Вопрос по процессу оформления — ответ через AI (база знаний процесса)"},
+    {id:"E", x:180, y:336, w:300, h:64, cls:"algo", fs:12, html:"<div><b>Проверка и валидация заявки</b> (полнота данных, формат документов, сверка с договором)</div>"},
+    {id:"F", x:180, y:432, w:300, h:88, cls:"algo", fs:12, html:"<b>Есть ошибки / комментарии / уточнения?</b>"},
+    {id:"G", x:560, y:336, w:490, h:64, cls:"llm", fs:12,
+     html:"AI-общение: список ошибок передаётся в модель, пояснения возвращаются пользователю"},
+    {id:"H", x:180, y:572, w:280, h:84, cls:"algo", fs:12, html:"Формирует проект спецификации, готовый к отправке на согласование"},
+    {id:"I", x:500, y:572, w:180, h:84, cls:"human", fs:12, html:"Решение за человеком (исполнитель штаба) — на первое время"},
+    {id:"J", x:710, y:560, w:170, h:52, cls:"notdev", fs:11, html:"Процесс согласования в разных системах"},
+    {id:"K", x:710, y:618, w:170, h:48, cls:"notdev", fs:11, html:"Этап выполнения работ"},
+    {id:"L", x:920, y:558, w:176, h:108, cls:"stage", fs:12, html:"<div style='display:flex;flex-direction:column;align-items:center;gap:5px'><span>Проверка артефактов и подготовка запуска оплаты</span><span style='font-size:10px;font-weight:700;border:1px solid rgba(255,255,255,.85);border-radius:9px;padding:1px 8px'>ЭТАП 2</span></div>"},
+  ],
+  arrows: [
+    {from:"a:b", to:"B:t", via:[[640,192],[330,192]]},
+    {from:"B:r", to:"C:l"},
+    {from:"C:t", to:"a:r", via:[[710,92],[1155,92],[1155,141]]},
+    {from:"B:b", to:"E:t"},
+    {from:"E:b", to:"F:t"},
+    {from:"F:r", to:"G:l", via:[[520,476],[520,368]]},
+    {from:"F:b", to:"H:t", via:[[330,546],[320,546]]},
+    {from:"G:r", to:"a:r", via:[[1155,368],[1155,141]]},
+    {from:"H:r", to:"I:l"},
+    {from:"I:r", to:"J:l", via:[[695,614],[695,586]]},
+    {from:"J:b", to:"K:t"},
+    {from:"K:r", to:"L:l", via:[[900,642],[900,612]]},
+  ],
+  labels: [
+    {text:"да", x:540, y:452},
+    {text:"нет", x:355, y:548},
+  ],
+  nums: [
+    {x:150,y:155,n:"1"},{x:160,y:258,n:"2"},
+    {x:160,y:368,n:"3"},{x:480,y:614,n:"4"},{x:695,y:600,n:"5"},{x:900,y:600,n:"6"},
+  ],
+  annots: [{x:895, y:498, w:195, html:"Этап 2 — после реализации основного процесса"}],
+  legend: LEG3,
+},
+// ============ Slide 2: карта зависимостей ============
+{
+  title: "Карта зависимостей агента",
+  subtitle: "Внутренние компоненты StaffAI и внешние интеграции",
+  boxes: [
+    // core container
+    {id:"core", x:430, y:180, w:420, h:360, cls:"entry", fs:12, html:"<div style='position:absolute;top:8px;left:0;right:0;font-weight:800;color:#21365e'>StaffAI</div>"},
+    {id:"UI",  x:452, y:222, w:180, h:56, cls:"algo", fs:11, html:"Веб-интерфейс (заказчик и штаб)"},
+    {id:"AI",  x:648, y:222, w:180, h:56, cls:"algo", fs:11, html:"AI-оркестратор"},
+    {id:"VAL", x:452, y:294, w:180, h:56, cls:"algo", fs:11, html:"Механизм валидации"},
+    {id:"GEN", x:648, y:294, w:180, h:56, cls:"algo", fs:11, html:"Генератор артефактов"},
+    {id:"API", x:452, y:366, w:180, h:56, cls:"algo", fs:11, html:"Backend API, статусы, аудит"},
+    {id:"DB",  x:648, y:366, w:180, h:56, cls:"algo", fs:11, html:"БД: заявки, сессии, версии, события"},
+    // left external
+    {id:"sudir",x:70, y:196, w:250, h:52, cls:"human", fs:11, html:"СУДИР (единый вход)"},
+    {id:"giga",x:70, y:270, w:250, h:52, cls:"llm", fs:11, html:"GigaChat (языковая модель)"},
+    {id:"kap", x:70, y:344, w:250, h:60, cls:"algo", fs:11, html:"Хранилище договоров: роли, тарифы, бюджет"},
+    {id:"ref", x:70, y:426, w:250, h:56, cls:"algo", fs:11, html:"Справочники: роли, грейды, продукты, CI"},
+    // right external
+    {id:"lk",  x:960, y:196, w:250, h:64, cls:"notdev", fs:11, html:"ЛК заказчика ИТ-ресурсов: конфигурация → черновик ЗНР → ЭДО"},
+    {id:"trk", x:960, y:274, w:250, h:56, cls:"algo", fs:11, html:"СберТрек / Jira: пакет Epic и Story"},
+    {id:"esup",x:960, y:344, w:250, h:50, cls:"notdev", fs:11, html:"ЕСУП (через ЛК)"},
+    {id:"know",x:960, y:408, w:250, h:56, cls:"stage", fs:11, html:"Этап 2: библиотека знаний (Jira/Confluence)"},
+    // bottom future
+    {id:"pulse",x:430, y:578, w:130, h:52, cls:"stage", fs:10, html:"Этап 2: Пульс ЕК"},
+    {id:"sm",  x:575, y:578, w:140, h:52, cls:"stage", fs:10, html:"Этап 2: ServiceManager"},
+    {id:"finai",x:730,y:578, w:140, h:52, cls:"stage", fs:10, html:"Этап 2: FinAI (инициативы)"},
+    {id:"vend",x:885, y:578, w:180, h:52, cls:"stage", fs:10, html:"Целевая АС: оплата, НМА (при миграции)"},
+  ],
+  arrows: [
+    {from:"sudir:r", to:"UI:l", via:[[386,222],[386,250]]},
+    {from:"giga:r", to:"AI:l", via:[[400,296],[400,250]]},
+    {from:"kap:r", to:"VAL:l", via:[[400,374],[400,322]]},
+    {from:"kap:r", to:"GEN:l", via:[[410,374],[410,322]], dash:true},
+    {from:"ref:r", to:"AI:l", via:[[380,454],[380,250]], dash:true},
+    {from:"GEN:r", to:"lk:l", via:[[890,322],[890,228]]},
+    {from:"GEN:r", to:"trk:l", via:[[880,322],[880,302]], dash:true},
+    {from:"lk:b", to:"esup:t", via:[[1085,260],[1085,344]]},
+    {from:"know:l", to:"API:r", via:[[800,436],[800,394]], dash:true},
+    {from:"pulse:t", to:"core:b", via:[[495,552],[640,552]], dash:true},
+    {from:"sm:t", to:"core:b", via:[[645,552],[640,552]], dash:true},
+    {from:"finai:t", to:"core:b", via:[[800,552],[640,552]], dash:true},
+    {from:"vend:t", to:"core:b", via:[[975,552],[640,552]], dash:true},
+  ],
+  legend: LEG3,
+},
+// ============ Slide 3: расшифровка + правила ============
+{
+  title: "Пошаговая расшифровка и правила исполнения",
+  subtitle: "Дополнение к схеме флоу",
+  sheet: `
+  <table>
+    <tr><th style="width:34px">Шаг</th><th style="width:150px">Кто / что</th><th>Вход</th><th>Выход</th><th style="width:110px">Тип</th></tr>
+    <tr><td>1</td><td>Заказчик (веб-сервис, СУДИР)</td><td>Потребность (текст, файл, шаблон)</td><td>Исходный ввод, сессия диалога</td><td>Человек</td></tr>
+    <tr><td>2</td><td>AI-агент</td><td>Исходный ввод</td><td>Классификация; структурированный черновик (роли, грейды, кол-во, сроки, стек); уточняющие вопросы (не более 3–5)</td><td>LLM</td></tr>
+    <tr><td>2а</td><td>AI-агент</td><td>Вопрос по процессу</td><td>Ответ из базы знаний процесса, без создания заявки</td><td>LLM</td></tr>
+    <tr><td>3</td><td>Валидатор</td><td>Черновик + приложенные документы</td><td>Отчёт о проверке (флаги: превышение, близко к лимиту, требуется продление)</td><td>Алгоритм</td></tr>
+    <tr><td>3а</td><td>AI-агент</td><td>Список ошибок</td><td>Пояснения пользователю простым языком; цикл до устранения, лимит итераций и эскалация</td><td>LLM</td></tr>
+    <tr><td>4</td><td>Генератор артефактов</td><td>Подтверждённая карточка + договор и ставки + шаблон</td><td>Проект спецификации (DOCX/PDF и JSON), версия</td><td>LLM + Алгоритм</td></tr>
+    <tr><td>5</td><td>Исполнитель (штаб)</td><td>Проект спецификации и слой проверки</td><td>Решение: отправить / вернуть / скорректировать</td><td>Человек</td></tr>
+    <tr><td>5а</td><td>Система</td><td>Решение «отправить»</td><td>Рассылка: подрядчик (почта), исполнитель, заказчик; статус «Отправлено на согласование»</td><td>Алгоритм</td></tr>
+    <tr class="sec"><td>—</td><td colspan="4">Согласование в разных системах и этап выполнения работ — существующие процессы, в разработку не входят</td></tr>
+    <tr><td>6</td><td>Этап 2</td><td>Артефакты выполнения</td><td>Проверка артефактов, подготовка запуска оплаты</td><td>Этап 2</td></tr>
+    <tr class="sec"><td>—</td><td colspan="4">Оплата (контроль у штаба) и НМА — целевая АС при миграции, в периметр не входят</td></tr>
+  </table>
+  <h3>Правила исполнения (сквозные)</h3>
+  <ol>
+    <li>Решение человека: шаг 5 всегда за исполнителем «на первое время»; автоотправка — только после накопления метрик качества и отдельного решения.</li>
+    <li>Достоверность: модель не выдумывает договоры, ставки, CI, бюджет; всё справочное — только из хранилища и справочников; «не найдено» вместо догадки; выводы с низкой уверенностью — на проверку штабу.</li>
+    <li>Устойчивость к сбоям: недоступность внешних систем не останавливает конвейер — отложенная задача, ограниченный режим, повторная синхронизация; недоступность модели — сохранение черновика и ручная обработка.</li>
+    <li>Единый жизненный цикл: каждый запрос образует одну сущность «Заявка» с общими статусами и историей событий (аудит).</li>
+    <li>Разделение слоёв: статусы, доступ, валидация, рассылки — только алгоритм; интерпретация, диалог, генерация текста — модель.</li>
+  </ol>`,
+},
+];
+</script>
+<script>renderAll(SLIDES_03);</script>
+</body></html>
